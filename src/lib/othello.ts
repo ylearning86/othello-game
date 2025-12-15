@@ -151,6 +151,10 @@ export function makeMove(state: GameState, row: number, col: number): GameState 
 }
 
 export function replayMovesToIndex(moves: Move[], targetIndex: number): GameState {
+  if (!moves || moves.length === 0) {
+    return createInitialState();
+  }
+  
   let state = createInitialState();
   
   for (let i = 0; i <= targetIndex && i < moves.length; i++) {

@@ -41,9 +41,9 @@ function App() {
   const [isReplayPlaying, setIsReplayPlaying] = useState(false);
   const replayTimerRef = useRef<number | null>(null);
 
-  const currentState = gameState || createInitialState();
+  const currentState = gameState ?? createInitialState();
   const displayState = isReplayMode && replayMoveIndex >= 0
-    ? replayMovesToIndex(currentState.moveHistory, replayMoveIndex)
+    ? replayMovesToIndex(currentState.moveHistory ?? [], replayMoveIndex)
     : currentState;
   const isAITurn = gameMode === 'pve' && currentState.currentPlayer === 'white' && !currentState.gameOver;
 
@@ -74,7 +74,8 @@ function App() {
 
   useEffect(() => {
     if (isReplayPlaying && isReplayMode) {
-      if (replayMoveIndex < currentState.moveHistory.length - 1) {
+      const historyLength = currentState.moveHistory?.length ?? 0;
+      if (replayMoveIndex < historyLength - 1) {
         replayTimerRef.current = window.setTimeout(() => {
           setReplayMoveIndex(prev => prev + 1);
         }, 800);
@@ -88,7 +89,7 @@ function App() {
         clearTimeout(replayTimerRef.current);
       }
     };
-  }, [isReplayPlaying, replayMoveIndex, currentState.moveHistory.length, isReplayMode]);
+  }, [isReplayPlaying, replayMoveIndex, currentState.moveHistory?.length, isReplayMode]);
 
   const handleMove = (row: number, col: number) => {
     const flippedCount = getFlippedPieces(currentState.board, row, col, currentState.currentPlayer).length;
@@ -149,7 +150,8 @@ function App() {
   const handleToggleReplay = () => {
     if (!isReplayMode) {
       setIsReplayMode(true);
-      setReplayMoveIndex(currentState.moveHistory.length - 1);
+      const historyLength = currentState.moveHistory?.length ?? 0;
+      setReplayMoveIndex(Math.max(0, historyLength - 1));
       setIsReplayPlaying(false);
     } else {
       setIsReplayMode(false);
@@ -163,7 +165,8 @@ function App() {
   };
 
   const handleStepForward = () => {
-    if (replayMoveIndex < currentState.moveHistory.length - 1) {
+    const historyLength = currentState.moveHistory?.length ?? 0;
+    if (replayMoveIndex < historyLength - 1) {
       setReplayMoveIndex(prev => prev + 1);
       setIsReplayPlaying(false);
     }
@@ -182,7 +185,8 @@ function App() {
   };
 
   const handleGoToEnd = () => {
-    setReplayMoveIndex(currentState.moveHistory.length - 1);
+    const historyLength = currentState.moveHistory?.length ?? 0;
+    setReplayMoveIndex(Math.max(0, historyLength - 1));
     setIsReplayPlaying(false);
   };
 
@@ -201,7 +205,7 @@ function App() {
 
   const isNewPiece = (row: number, col: number) => {
     if (isReplayMode && replayMoveIndex >= 0) {
-      const move = currentState.moveHistory[replayMoveIndex];
+      const move = currentState.moveHistory?.[replayMoveIndex];
       return move && move.row === row && move.col === col;
     }
     return lastMove !== null && lastMove[0] === row && lastMove[1] === col;
@@ -409,7 +413,7 @@ function App() {
                 isReplayMode={isReplayMode}
                 isPlaying={isReplayPlaying}
                 currentMoveIndex={replayMoveIndex}
-                totalMoves={currentState.moveHistory.length}
+                totalMoves={currentState.moveHistory?.length ?? 0}
                 onToggleReplay={handleToggleReplay}
                 onPlayPause={handlePlayPause}
                 onStepForward={handleStepForward}
@@ -421,7 +425,7 @@ function App() {
               />
 
               <MoveHistory
-                moves={currentState.moveHistory}
+                moves={currentState.moveHistory ?? []}
                 currentMoveIndex={replayMoveIndex}
                 onMoveClick={handleMoveClick}
                 isReplayMode={isReplayMode}
