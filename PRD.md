@@ -68,6 +68,13 @@ A strategic Othello (Reversi) game where two players compete to control the boar
 - **Progression**: Player makes move → AI analyzes valid moves → Applies difficulty algorithm → Displays thinking indicator → Makes move after delay → Player's turn
 - **Success criteria**: AI makes legal moves, difficulty affects strategy quality, thinking delay feels natural, AI doesn't block user interaction
 
+### Game Replay System
+- **Functionality**: Records all moves during gameplay and allows users to review the entire game with playback controls
+- **Purpose**: Enables players to analyze their strategy, learn from past games, and review critical moments
+- **Trigger**: Click "Enter Replay" button after moves have been made
+- **Progression**: Enter replay mode → Playback controls appear → Navigate through moves using slider/buttons/history list → Play/pause auto-playback → Click specific move in history → Exit replay to return to current game state
+- **Success criteria**: All moves are recorded with timestamps, replay accurately recreates board state at each move, controls are responsive, auto-play advances at readable pace, exiting replay returns to live game
+
 ## Edge Case Handling
 - **No Valid Moves**: If current player has no valid moves, automatically pass turn to opponent
 - **Game End**: When neither player can move, declare winner based on piece count (or tie)
@@ -75,6 +82,9 @@ A strategic Othello (Reversi) game where two players compete to control the boar
 - **Multiple Directions**: Correctly flip pieces in all valid directions from a single placement
 - **AI Turn Interruption**: Disable board interaction during AI thinking phase
 - **Mode Switching**: Reset game state when switching between PvP and PvE modes
+- **Replay Mode Interaction**: Disable piece placement and AI moves during replay mode
+- **Empty Move History**: Hide replay controls when no moves have been made yet
+- **Replay State Persistence**: Move history persists in storage but replay state resets on game reset
 
 ## Design Direction
 The design should evoke the classic elegance of a traditional board game while feeling modern and digital - a balance of timeless strategy game aesthetics with smooth, responsive interactions.
@@ -99,22 +109,27 @@ The typeface should convey clarity and modernity while nodding to classic game t
   - Body (Instructions): Space Grotesk Regular/16px/relaxed spacing
 
 ## Animations
-Animations should emphasize the satisfying nature of capturing pieces and reinforce cause-and-effect relationships. Sound effects complement visual feedback. AI thinking states have subtle visual indicators.
+Animations should emphasize the satisfying nature of capturing pieces and reinforce cause-and-effect relationships. Sound effects complement visual feedback. AI thinking states have subtle visual indicators. Replay controls animate smoothly.
 
 - Piece flip transitions using 3D rotation effect (rotateY) over 400ms with ease-in-out
 - Valid move indicators pulse gently to draw attention without distraction
 - Piece placement has subtle scale-up effect to emphasize commitment
 - Score changes animate with number increments for impact
 - AI thinking indicator with pulsing robot icon
-- Board opacity dims slightly during AI turn to indicate wait state
+- Board opacity dims slightly during AI turn and replay mode to indicate wait state
+- Replay controls slide in/out with height animation when toggled
+- Move history items have hover effects with slight translation
+- Auto-playback advances with 800ms intervals for comfortable viewing
 - Sound effects: piece placement (single tone), cascading flip sounds (sequential tones), victory melody (chord progression), new game chord
 
 ## Component Selection
 - **Components**: 
-  - Button (shadcn) for game reset and mode selection with hover state customization
+  - Button (shadcn) for game reset, mode selection, and replay controls with hover state customization
   - Card (shadcn) for game container with elevated appearance
   - Badge (shadcn) for displaying current turn and scores
   - Select (shadcn) for AI difficulty dropdown
+  - Slider (shadcn) for replay timeline scrubbing
+  - ScrollArea (shadcn) for move history list
 - **Customizations**: 
   - Custom board grid using CSS Grid (8x8)
   - Custom piece components with 3D flip animation using framer-motion
@@ -127,9 +142,13 @@ Animations should emphasize the satisfying nature of capturing pieces and reinfo
   - Mode buttons: active, inactive
 - **Icon Selection**: 
   - ArrowClockwise (Phosphor) for reset button
+  - ArrowCounterClockwise (Phosphor) for replay toggle
   - Circle (Phosphor) filled variants for piece representations in UI
   - User (Phosphor) for player vs player mode
   - Robot (Phosphor) for AI opponent mode and thinking indicator
+  - Play/Pause (Phosphor) filled variants for replay auto-playback
+  - CaretLeft/CaretRight (Phosphor) for step controls
+  - SkipBack/SkipForward (Phosphor) for jump to start/end controls
 - **Spacing**: 
   - Board padding: p-6
   - Grid gap: gap-1 (tight grid lines)

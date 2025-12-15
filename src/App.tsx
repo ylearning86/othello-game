@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { BoardCell } from './components/BoardCell';
 import { Card } from './components/ui/card';
 import { Button } from './components/ui/button';
@@ -11,6 +11,7 @@ import {
   makeMove,
   getValidMoves,
   getFlippedPieces,
+  replayMovesToIndex,
   type GameState,
 } from './lib/othello';
 import { audioManager } from './lib/sounds';
@@ -22,6 +23,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from './components/ui/select';
+import { ReplayControls } from './components/ReplayControls';
+import { MoveHistory } from './components/MoveHistory';
 
 type GameMode = 'pvp' | 'pve';
 
@@ -32,16 +35,28 @@ function App() {
   const [gameMode, setGameMode] = useKV<GameMode>('othello-mode', 'pvp');
   const [difficulty, setDifficulty] = useKV<Difficulty>('othello-difficulty', 'medium');
   const [isAIThinking, setIsAIThinking] = useState(false);
+  
+  const [isReplayMode, setIsReplayMode] = useState(false);
+  const [replayMoveIndex, setReplayMoveIndex] = useState(-1);
+  const [isReplayPlaying, setIsReplayPlaying] = useState(false);
+  const replayTimerRef = useRef<number | null>(null);
 
   const currentState = gameState || createInitialState();
+  const displayState = isReplayMode && replayMoveIndex >= 0
+    ? replayMovesToIndex(currentState.moveHistory, replayMoveIndex)
+    : currentState;
   const isAITurn = gameMode === 'pve' && currentState.currentPlayer === 'white' && !currentState.gameOver;
 
   useEffect(() => {
-    setValidMoves(getValidMoves(currentState.board, currentState.currentPlayer));
-  }, [currentState]);
+    if (!isReplayMode) {
+      setValidMoves(getValidMoves(currentState.board, currentState.currentPlayer));
+    } else {
+      setValidMoves([]);
+    }
+  }, [currentState, isReplayMode]);
 
   useEffect(() => {
-    if (isAITurn && !isAIThinking) {
+    if (isAITurn && !isAIThinking && !isReplayMode) {
       setIsAIThinking(true);
       const currentDifficulty = difficulty || 'medium';
       const thinkingTime = currentDifficulty === 'easy' ? 300 : currentDifficulty === 'medium' ? 600 : 900;
@@ -55,7 +70,25 @@ function App() {
         setIsAIThinking(false);
       }, thinkingTime);
     }
-  }, [isAITurn, isAIThinking, currentState, difficulty]);
+  }, [isAITurn, isAIThinking, currentState, difficulty, isReplayMode]);
+
+  useEffect(() => {
+    if (isReplayPlaying && isReplayMode) {
+      if (replayMoveIndex < currentState.moveHistory.length - 1) {
+        replayTimerRef.current = window.setTimeout(() => {
+          setReplayMoveIndex(prev => prev + 1);
+        }, 800);
+      } else {
+        setIsReplayPlaying(false);
+      }
+    }
+
+    return () => {
+      if (replayTimerRef.current) {
+        clearTimeout(replayTimerRef.current);
+      }
+    };
+  }, [isReplayPlaying, replayMoveIndex, currentState.moveHistory.length, isReplayMode]);
 
   const handleMove = (row: number, col: number) => {
     const flippedCount = getFlippedPieces(currentState.board, row, col, currentState.currentPlayer).length;
@@ -81,7 +114,7 @@ function App() {
   };
 
   const handleCellClick = (row: number, col: number) => {
-    if (isAITurn || isAIThinking) return;
+    if (isAITurn || isAIThinking || isReplayMode) return;
     
     const isValid = validMoves.some(([r, c]) => r === row && c === col);
     if (!isValid || currentState.gameOver) {
@@ -99,6 +132,9 @@ function App() {
     setGameState(createInitialState());
     setLastMove(null);
     setIsAIThinking(false);
+    setIsReplayMode(false);
+    setReplayMoveIndex(-1);
+    setIsReplayPlaying(false);
   };
 
   const handleModeChange = (mode: GameMode) => {
@@ -110,11 +146,66 @@ function App() {
     setDifficulty(diff);
   };
 
+  const handleToggleReplay = () => {
+    if (!isReplayMode) {
+      setIsReplayMode(true);
+      setReplayMoveIndex(currentState.moveHistory.length - 1);
+      setIsReplayPlaying(false);
+    } else {
+      setIsReplayMode(false);
+      setReplayMoveIndex(-1);
+      setIsReplayPlaying(false);
+    }
+  };
+
+  const handlePlayPause = () => {
+    setIsReplayPlaying(prev => !prev);
+  };
+
+  const handleStepForward = () => {
+    if (replayMoveIndex < currentState.moveHistory.length - 1) {
+      setReplayMoveIndex(prev => prev + 1);
+      setIsReplayPlaying(false);
+    }
+  };
+
+  const handleStepBackward = () => {
+    if (replayMoveIndex > 0) {
+      setReplayMoveIndex(prev => prev - 1);
+      setIsReplayPlaying(false);
+    }
+  };
+
+  const handleGoToStart = () => {
+    setReplayMoveIndex(0);
+    setIsReplayPlaying(false);
+  };
+
+  const handleGoToEnd = () => {
+    setReplayMoveIndex(currentState.moveHistory.length - 1);
+    setIsReplayPlaying(false);
+  };
+
+  const handleSliderChange = (value: number[]) => {
+    setReplayMoveIndex(value[0]);
+    setIsReplayPlaying(false);
+  };
+
+  const handleMoveClick = (index: number) => {
+    setReplayMoveIndex(index);
+    setIsReplayPlaying(false);
+  };
+
   const isValidCell = (row: number, col: number) =>
     validMoves.some(([r, c]) => r === row && c === col);
 
-  const isNewPiece = (row: number, col: number) =>
-    lastMove !== null && lastMove[0] === row && lastMove[1] === col;
+  const isNewPiece = (row: number, col: number) => {
+    if (isReplayMode && replayMoveIndex >= 0) {
+      const move = currentState.moveHistory[replayMoveIndex];
+      return move && move.row === row && move.col === col;
+    }
+    return lastMove !== null && lastMove[0] === row && lastMove[1] === col;
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
@@ -139,12 +230,12 @@ function App() {
                 padding: '12px',
                 borderRadius: '8px',
                 boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-                opacity: isAIThinking ? 0.7 : 1,
-                pointerEvents: isAIThinking ? 'none' : 'auto',
+                opacity: isAIThinking || isReplayMode ? 0.7 : 1,
+                pointerEvents: isAIThinking || isReplayMode ? 'none' : 'auto',
                 transition: 'opacity 0.3s'
               }}
             >
-              {currentState.board.map((row, rowIndex) =>
+              {displayState.board.map((row, rowIndex) =>
                 row.map((cell, colIndex) => (
                   <BoardCell
                     key={`${rowIndex}-${colIndex}`}
@@ -164,6 +255,15 @@ function App() {
               >
                 <Robot size={20} weight="fill" className="animate-pulse" />
                 <span>AI is thinking...</span>
+              </motion.div>
+            )}
+            {isReplayMode && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center mt-4 text-accent-foreground flex items-center justify-center gap-2 font-medium"
+              >
+                <span>Replay Mode</span>
               </motion.div>
             )}
           </Card>
@@ -218,10 +318,10 @@ function App() {
                   variant="outline"
                   className="text-base px-4 py-2 w-full justify-center"
                   style={{
-                    backgroundColor: currentState.currentPlayer === 'black' 
+                    backgroundColor: displayState.currentPlayer === 'black' 
                       ? 'oklch(0.15 0 0)' 
                       : 'oklch(0.95 0 0)',
-                    color: currentState.currentPlayer === 'black' 
+                    color: displayState.currentPlayer === 'black' 
                       ? 'oklch(0.98 0 0)' 
                       : 'oklch(0.15 0 0)',
                     borderColor: 'oklch(0.65 0.15 75)',
@@ -229,8 +329,8 @@ function App() {
                   }}
                 >
                   <Circle weight="fill" className="mr-2" />
-                  {currentState.currentPlayer === 'black' ? 'Black' : 'White'}
-                  {gameMode === 'pve' && currentState.currentPlayer === 'white' && ' (AI)'}
+                  {displayState.currentPlayer === 'black' ? 'Black' : 'White'}
+                  {gameMode === 'pve' && displayState.currentPlayer === 'white' && ' (AI)'}
                 </Badge>
               </div>
 
@@ -246,12 +346,12 @@ function App() {
                       </span>
                     </div>
                     <motion.span
-                      key={currentState.blackScore}
+                      key={displayState.blackScore}
                       initial={{ scale: 1.5, color: 'oklch(0.65 0.15 75)' }}
                       animate={{ scale: 1, color: 'oklch(0.98 0 0)' }}
                       className="text-xl font-bold text-white"
                     >
-                      {currentState.blackScore}
+                      {displayState.blackScore}
                     </motion.span>
                   </div>
                   <div className="flex items-center justify-between p-2 rounded" style={{ backgroundColor: 'oklch(0.95 0 0)' }}>
@@ -263,19 +363,19 @@ function App() {
                       </span>
                     </div>
                     <motion.span
-                      key={currentState.whiteScore}
+                      key={displayState.whiteScore}
                       initial={{ scale: 1.5, color: 'oklch(0.65 0.15 75)' }}
                       animate={{ scale: 1, color: 'oklch(0.15 0 0)' }}
                       className="text-xl font-bold text-black"
                     >
-                      {currentState.whiteScore}
+                      {displayState.whiteScore}
                     </motion.span>
                   </div>
                 </div>
               </div>
 
               <AnimatePresence>
-                {currentState.gameOver && (
+                {displayState.gameOver && (
                   <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -288,9 +388,9 @@ function App() {
                   >
                     <h3 className="font-bold text-lg mb-1">Game Over!</h3>
                     <p className="text-sm">
-                      {currentState.winner === 'tie'
+                      {displayState.winner === 'tie'
                         ? "It's a tie!"
-                        : `${currentState.winner === 'black' ? 'Black' : 'White'} wins!`}
+                        : `${displayState.winner === 'black' ? 'Black' : 'White'} wins!`}
                     </p>
                   </motion.div>
                 )}
@@ -304,6 +404,28 @@ function App() {
                 <ArrowClockwise className="mr-2" size={20} />
                 New Game
               </Button>
+
+              <ReplayControls
+                isReplayMode={isReplayMode}
+                isPlaying={isReplayPlaying}
+                currentMoveIndex={replayMoveIndex}
+                totalMoves={currentState.moveHistory.length}
+                onToggleReplay={handleToggleReplay}
+                onPlayPause={handlePlayPause}
+                onStepForward={handleStepForward}
+                onStepBackward={handleStepBackward}
+                onGoToStart={handleGoToStart}
+                onGoToEnd={handleGoToEnd}
+                onSliderChange={handleSliderChange}
+                disabled={isAIThinking}
+              />
+
+              <MoveHistory
+                moves={currentState.moveHistory}
+                currentMoveIndex={replayMoveIndex}
+                onMoveClick={handleMoveClick}
+                isReplayMode={isReplayMode}
+              />
             </div>
           </Card>
         </div>

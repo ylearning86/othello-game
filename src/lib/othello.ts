@@ -2,6 +2,14 @@ export type Player = 'black' | 'white';
 export type Cell = Player | null;
 export type Board = Cell[][];
 
+export interface Move {
+  row: number;
+  col: number;
+  player: Player;
+  timestamp: number;
+  flippedCount: number;
+}
+
 export interface GameState {
   board: Board;
   currentPlayer: Player;
@@ -9,6 +17,7 @@ export interface GameState {
   whiteScore: number;
   gameOver: boolean;
   winner: Player | 'tie' | null;
+  moveHistory: Move[];
 }
 
 const DIRECTIONS = [
@@ -34,7 +43,8 @@ export function createInitialState(): GameState {
     blackScore: 2,
     whiteScore: 2,
     gameOver: false,
-    winner: null
+    winner: null,
+    moveHistory: []
   };
 }
 
@@ -121,14 +131,34 @@ export function makeMove(state: GameState, row: number, col: number): GameState 
     else winner = 'tie';
   }
 
+  const move: Move = {
+    row,
+    col,
+    player: state.currentPlayer,
+    timestamp: Date.now(),
+    flippedCount: flipped.length
+  };
+
   return {
     board: newBoard,
     currentPlayer: finalPlayer,
     blackScore: black,
     whiteScore: white,
     gameOver,
-    winner
+    winner,
+    moveHistory: [...state.moveHistory, move]
   };
+}
+
+export function replayMovesToIndex(moves: Move[], targetIndex: number): GameState {
+  let state = createInitialState();
+  
+  for (let i = 0; i <= targetIndex && i < moves.length; i++) {
+    const move = moves[i];
+    state = makeMove(state, move.row, move.col);
+  }
+  
+  return state;
 }
 
 export function countPieces(board: Board): { black: number; white: number } {
