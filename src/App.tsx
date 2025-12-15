@@ -10,8 +10,10 @@ import {
   createInitialState,
   makeMove,
   getValidMoves,
+  getFlippedPieces,
   type GameState,
 } from './lib/othello';
+import { audioManager } from './lib/sounds';
 
 function App() {
   const [gameState, setGameState] = useKV<GameState>('othello-game', createInitialState());
@@ -26,13 +28,37 @@ function App() {
 
   const handleCellClick = (row: number, col: number) => {
     const isValid = validMoves.some(([r, c]) => r === row && c === col);
-    if (!isValid || currentState.gameOver) return;
+    if (!isValid || currentState.gameOver) {
+      if (!currentState.gameOver) {
+        audioManager.invalidMove();
+      }
+      return;
+    }
+
+    const flippedCount = getFlippedPieces(currentState.board, row, col, currentState.currentPlayer).length;
+    
+    audioManager.placePiece();
+    
+    if (flippedCount > 0) {
+      setTimeout(() => {
+        audioManager.flipPieces(flippedCount);
+      }, 100);
+    }
 
     setLastMove([row, col]);
-    setGameState(makeMove(currentState, row, col));
+    const newState = makeMove(currentState, row, col);
+    setGameState(newState);
+
+    if (newState.gameOver) {
+      setTimeout(() => {
+        const playerWon = newState.winner === 'black' || newState.winner === 'white';
+        audioManager.gameOver(playerWon);
+      }, 300 + (flippedCount * 30));
+    }
   };
 
   const handleReset = () => {
+    audioManager.newGame();
     setGameState(createInitialState());
     setLastMove(null);
   };

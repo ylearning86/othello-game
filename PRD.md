@@ -47,6 +47,13 @@ A strategic Othello (Reversi) game where two players compete to control the boar
 - **Progression**: Button click → Reset board to starting position → Reset scores → Set black as starting player
 - **Success criteria**: Complete state reset, smooth transition to new game
 
+### Sound Effects
+- **Functionality**: Audio feedback for game actions using Web Audio API
+- **Purpose**: Enhances engagement and provides satisfying auditory confirmation of player actions
+- **Trigger**: Various game events (piece placement, flipping, game end, reset)
+- **Progression**: Player action → Synthesize appropriate tone → Play sound at correct timing → Multiple sounds sequence for cascading effects
+- **Success criteria**: Sounds are clear and pleasant, timing matches visual feedback, volume is balanced, sounds enhance rather than distract
+
 ## Edge Case Handling
 - **No Valid Moves**: If current player has no valid moves, automatically pass turn to opponent
 - **Game End**: When neither player can move, declare winner based on piece count (or tie)
@@ -76,12 +83,13 @@ The typeface should convey clarity and modernity while nodding to classic game t
   - Body (Instructions): Space Grotesk Regular/16px/relaxed spacing
 
 ## Animations
-Animations should emphasize the satisfying nature of capturing pieces and reinforce cause-and-effect relationships.
+Animations should emphasize the satisfying nature of capturing pieces and reinforce cause-and-effect relationships. Sound effects complement visual feedback.
 
 - Piece flip transitions using 3D rotation effect (rotateY) over 400ms with ease-in-out
 - Valid move indicators pulse gently to draw attention without distraction
 - Piece placement has subtle scale-up effect to emphasize commitment
 - Score changes animate with number increments for impact
+- Sound effects: piece placement (single tone), cascading flip sounds (sequential tones), victory melody (chord progression), new game chord
 
 ## Component Selection
 - **Components**: 
