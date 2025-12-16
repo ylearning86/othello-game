@@ -10,6 +10,8 @@ const projectRoot = process.env.PROJECT_ROOT || import.meta.dirname
 
 // https://vite.dev/config/
 export default defineConfig({
+  // Base path for GitHub Pages at /othello-game/
+  base: '/othello-game/',
   plugins: [
     react(),
     tailwindcss(),
