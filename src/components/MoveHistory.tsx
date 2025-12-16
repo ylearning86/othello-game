@@ -20,7 +20,7 @@ export function MoveHistory({ moves, currentMoveIndex, onMoveClick, isReplayMode
 
   return (
     <div className="space-y-3">
-      <h2 className="text-xl font-medium">Move History</h2>
+      <h2 className="text-xl font-medium">手の履歴</h2>
       <ScrollArea className="h-[280px] rounded-md border border-border p-3">
         <div className="space-y-1">
           {moves.map((move, index) => {
@@ -66,7 +66,7 @@ export function MoveHistory({ moves, currentMoveIndex, onMoveClick, isReplayMode
                   )}
                 </div>
                 <span className="text-xs text-muted-foreground">
-                  {new Date(move.timestamp).toLocaleTimeString([], { 
+                  {new Date(move.timestamp).toLocaleTimeString('ja-JP', { 
                     hour: '2-digit', 
                     minute: '2-digit',
                     second: '2-digit'

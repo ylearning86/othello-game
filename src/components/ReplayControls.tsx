@@ -49,7 +49,7 @@ export function ReplayControls({
       className="space-y-4"
     >
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-medium">Replay</h2>
+        <h2 className="text-xl font-medium">リプレイ</h2>
         <Button
           variant={isReplayMode ? 'default' : 'outline'}
           size="sm"
@@ -57,7 +57,7 @@ export function ReplayControls({
           disabled={disabled}
         >
           <ArrowCounterClockwise className="mr-2" size={16} />
-          {isReplayMode ? 'Exit Replay' : 'Enter Replay'}
+          {isReplayMode ? '終了' : '開始'}
         </Button>
       </div>
 
@@ -71,7 +71,7 @@ export function ReplayControls({
           >
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm text-muted-foreground">
-                <span>Move {currentMoveIndex + 1} of {totalMoves}</span>
+                <span>{currentMoveIndex + 1}手目 / {totalMoves}手</span>
               </div>
               <Slider
                 value={[currentMoveIndex]}
@@ -89,7 +89,7 @@ export function ReplayControls({
                 size="icon"
                 onClick={onGoToStart}
                 disabled={currentMoveIndex === 0}
-                title="Go to start"
+                title="最初へ"
               >
                 <SkipBack size={20} />
               </Button>
@@ -98,7 +98,7 @@ export function ReplayControls({
                 size="icon"
                 onClick={onStepBackward}
                 disabled={currentMoveIndex === 0}
-                title="Previous move"
+                title="前の手"
               >
                 <CaretLeft size={20} />
               </Button>
@@ -107,7 +107,7 @@ export function ReplayControls({
                 size="icon"
                 onClick={onPlayPause}
                 className="w-12 h-12"
-                title={isPlaying ? 'Pause' : 'Play'}
+                title={isPlaying ? '一時停止' : '再生'}
               >
                 {isPlaying ? <Pause size={24} weight="fill" /> : <Play size={24} weight="fill" />}
               </Button>
@@ -116,7 +116,7 @@ export function ReplayControls({
                 size="icon"
                 onClick={onStepForward}
                 disabled={currentMoveIndex >= totalMoves - 1}
-                title="Next move"
+                title="次の手"
               >
                 <CaretRight size={20} />
               </Button>
@@ -125,7 +125,7 @@ export function ReplayControls({
                 size="icon"
                 onClick={onGoToEnd}
                 disabled={currentMoveIndex >= totalMoves - 1}
-                title="Go to end"
+                title="最後へ"
               >
                 <SkipForward size={20} />
               </Button>

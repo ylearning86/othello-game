@@ -220,7 +220,7 @@ function App() {
           transition={{ duration: 0.6 }}
         >
           <h1 className="text-4xl font-bold text-center mb-8 tracking-tight">
-            Othello
+            オセロ
           </h1>
         </motion.div>
 
@@ -258,7 +258,7 @@ function App() {
                 className="text-center mt-4 text-muted-foreground flex items-center justify-center gap-2"
               >
                 <Robot size={20} weight="fill" className="animate-pulse" />
-                <span>AI is thinking...</span>
+                <span>AIが考え中...</span>
               </motion.div>
             )}
             {isReplayMode && (
@@ -267,7 +267,7 @@ function App() {
                 animate={{ opacity: 1 }}
                 className="text-center mt-4 text-accent-foreground flex items-center justify-center gap-2 font-medium"
               >
-                <span>Replay Mode</span>
+                <span>リプレイモード</span>
               </motion.div>
             )}
           </Card>
@@ -275,7 +275,7 @@ function App() {
           <Card className="p-6 space-y-6 md:w-64">
             <div className="space-y-4">
               <div>
-                <h2 className="text-xl font-medium mb-3">Game Mode</h2>
+                <h2 className="text-xl font-medium mb-3">ゲームモード</h2>
                 <div className="grid grid-cols-2 gap-2">
                   <Button
                     variant={gameMode === 'pvp' ? 'default' : 'outline'}
@@ -283,7 +283,7 @@ function App() {
                     className="w-full"
                   >
                     <User className="mr-2" size={16} />
-                    vs Player
+                    対人戦
                   </Button>
                   <Button
                     variant={gameMode === 'pve' ? 'default' : 'outline'}
@@ -291,7 +291,7 @@ function App() {
                     className="w-full"
                   >
                     <Robot className="mr-2" size={16} />
-                    vs AI
+                    対AI戦
                   </Button>
                 </div>
               </div>
@@ -302,22 +302,22 @@ function App() {
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
                 >
-                  <h2 className="text-xl font-medium mb-3">Difficulty</h2>
+                  <h2 className="text-xl font-medium mb-3">難易度</h2>
                   <Select value={difficulty || 'medium'} onValueChange={(value) => handleDifficultyChange(value as Difficulty)}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="easy">Easy</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="hard">Hard</SelectItem>
+                      <SelectItem value="easy">簡単</SelectItem>
+                      <SelectItem value="medium">普通</SelectItem>
+                      <SelectItem value="hard">難しい</SelectItem>
                     </SelectContent>
                   </Select>
                 </motion.div>
               )}
 
               <div>
-                <h2 className="text-xl font-medium mb-3">Current Turn</h2>
+                <h2 className="text-xl font-medium mb-3">現在の手番</h2>
                 <Badge
                   variant="outline"
                   className="text-base px-4 py-2 w-full justify-center"
@@ -333,20 +333,20 @@ function App() {
                   }}
                 >
                   <Circle weight="fill" className="mr-2" />
-                  {displayState.currentPlayer === 'black' ? 'Black' : 'White'}
+                  {displayState.currentPlayer === 'black' ? '黒' : '白'}
                   {gameMode === 'pve' && displayState.currentPlayer === 'white' && ' (AI)'}
                 </Badge>
               </div>
 
               <div>
-                <h2 className="text-xl font-medium mb-3">Score</h2>
+                <h2 className="text-xl font-medium mb-3">スコア</h2>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between p-2 rounded" style={{ backgroundColor: 'oklch(0.15 0 0)' }}>
                     <div className="flex items-center gap-2">
                       <Circle weight="fill" className="text-white" />
                       <span className="font-medium text-white">
-                        Black
-                        {gameMode === 'pve' && ' (You)'}
+                        黒
+                        {gameMode === 'pve' && ' (あなた)'}
                       </span>
                     </div>
                     <motion.span
@@ -362,7 +362,7 @@ function App() {
                     <div className="flex items-center gap-2">
                       <Circle weight="fill" className="text-black" />
                       <span className="font-medium text-black">
-                        White
+                        白
                         {gameMode === 'pve' && ' (AI)'}
                       </span>
                     </div>
@@ -390,11 +390,11 @@ function App() {
                       color: 'oklch(0.2 0 0)'
                     }}
                   >
-                    <h3 className="font-bold text-lg mb-1">Game Over!</h3>
+                    <h3 className="font-bold text-lg mb-1">ゲーム終了！</h3>
                     <p className="text-sm">
                       {displayState.winner === 'tie'
-                        ? "It's a tie!"
-                        : `${displayState.winner === 'black' ? 'Black' : 'White'} wins!`}
+                        ? "引き分けです！"
+                        : `${displayState.winner === 'black' ? '黒' : '白'}の勝ち！`}
                     </p>
                   </motion.div>
                 )}
@@ -406,7 +406,7 @@ function App() {
                 size="lg"
               >
                 <ArrowClockwise className="mr-2" size={20} />
-                New Game
+                新しいゲーム
               </Button>
 
               <ReplayControls
